@@ -1,8 +1,8 @@
 import os
-import csvExporter
+import iauditor_exporter.modules.csvExporter as csvExporter
 import unicodecsv as csv
-from modules.global_variables import EXPORT_PATH
-from modules.logger import log_critical_error
+from iauditor_exporter.modules.global_variables import EXPORT_PATH
+from iauditor_exporter.modules.logger import log_critical_error
 
 
 def save_web_report_link_to_file(logger, export_dir, web_report_data):

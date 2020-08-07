@@ -4,8 +4,8 @@ import dateutil
 import pytz
 
 from datetime import datetime, timedelta
-from modules.global_variables import MEDIA_SYNC_OFFSET_IN_SECONDS, EXPORT_PATH
-from modules.logger import log_critical_error
+from iauditor_exporter.modules.global_variables import MEDIA_SYNC_OFFSET_IN_SECONDS, EXPORT_PATH
+from iauditor_exporter.modules.logger import log_critical_error
 
 
 def save_exported_media_to_file(logger, export_dir, media_file, filename, extension):

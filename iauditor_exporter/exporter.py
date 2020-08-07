@@ -4,20 +4,18 @@
 import time
 import sys
 
-from rich.panel import Panel
-from rich.traceback import install
-from rich import print, box
+from rich import print
 
 try:
-    from modules.exporters import export_audit_pdf_word, export_audit_json, export_audit_csv, export_actions
-    from modules.global_variables import *
-    from modules.last_successful import get_last_successful, update_sync_marker_file
-    from modules.logger import configure_logger
-    from modules.media import check_if_media_sync_offset_satisfied, export_audit_media
-    from modules.other import show_preferences_and_exit
-    from modules.settings import parse_export_filename, parse_command_line_arguments, configure
-    from modules.sql import sql_setup, end_session, query_max_last_modified, export_audit_sql
-    from modules.web_report_links import export_audit_web_report_link
+    from iauditor_exporter.modules.exporters import export_audit_pdf_word, export_audit_json, export_audit_csv, export_actions
+    from iauditor_exporter.modules.global_variables import *
+    from iauditor_exporter.modules.last_successful import get_last_successful, update_sync_marker_file
+    from iauditor_exporter.modules.logger import configure_logger
+    from iauditor_exporter.modules.media import check_if_media_sync_offset_satisfied, export_audit_media
+    from iauditor_exporter.modules.other import show_preferences_and_exit
+    from iauditor_exporter.modules.settings import parse_export_filename, parse_command_line_arguments, configure
+    from iauditor_exporter.modules.sql import sql_setup, end_session, query_max_last_modified, export_audit_sql
+    from iauditor_exporter.modules.web_report_links import export_audit_web_report_link
 
 except ImportError as e:
     print(e)

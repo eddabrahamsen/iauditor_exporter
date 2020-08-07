@@ -3,16 +3,13 @@ import os
 from datetime import datetime
 
 import unicodecsv as csv
-import csvExporter
-from modules.actions import transform_action_object_to_list
-from modules.global_variables import EXPORT_PATH, EXPORT_FORMATS, EXPORT_INACTIVE_ITEMS_TO_CSV, SQL_TABLE, \
+import iauditor_exporter.modules.csvExporter as csvExporter
+from iauditor_exporter.modules.actions import transform_action_object_to_list
+from iauditor_exporter.modules.global_variables import EXPORT_PATH, EXPORT_INACTIVE_ITEMS_TO_CSV,\
     USE_REAL_TEMPLATE_NAME, CONFIG_NAME, ACTIONS_EXPORT_FILENAME
-from modules.last_successful import get_last_successful_actions_export, update_actions_sync_marker_file
-from modules.logger import log_critical_error, create_directory_if_not_exists
-from modules.model import SQL_HEADER_ROW
-from modules.sql import export_audit_sql, save_exported_actions_to_db
-import pandas as pd
-import numpy as np
+from iauditor_exporter.modules.last_successful import get_last_successful_actions_export, update_actions_sync_marker_file
+from iauditor_exporter.modules.logger import log_critical_error, create_directory_if_not_exists
+from iauditor_exporter.modules.sql import save_exported_actions_to_db
 
 
 def save_exported_document(logger, export_dir, export_doc, filename, extension):

@@ -6,7 +6,7 @@ import sys
 
 import coloredlogs
 
-from modules.global_variables import LOG_LEVEL
+from iauditor_exporter.modules.global_variables import LOG_LEVEL
 
 
 def create_directory_if_not_exists(logger, path):

@@ -8,10 +8,10 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-import csvExporter
-from modules.actions import transform_action_object_to_list
-from modules.global_variables import *
-from modules.model import *
+import iauditor_exporter.modules.csvExporter as csvExporter
+from iauditor_exporter.modules.actions import transform_action_object_to_list
+from iauditor_exporter.modules.global_variables import *
+from iauditor_exporter.modules.model import *
 
 
 def test_sql_settings(logger, settings):

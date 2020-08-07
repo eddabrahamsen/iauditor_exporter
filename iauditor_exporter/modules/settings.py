@@ -6,12 +6,12 @@ import yaml
 from questionary import Separator
 from yaml.scanner import ScannerError
 
-from modules.global_variables import *
-from modules.last_successful import get_last_successful, parse_ls, update_sync_marker_file
-from modules.logger import log_critical_error, create_directory_if_not_exists
+from iauditor_exporter.modules.global_variables import *
+from iauditor_exporter.modules.last_successful import get_last_successful, parse_ls, update_sync_marker_file
+from iauditor_exporter.modules.logger import log_critical_error, create_directory_if_not_exists
 from safetypy import safetypy as sp
-from modules.setup_questions import questions, model_config
-from modules.sql import test_sql_settings
+from iauditor_exporter.modules.setup_questions import questions, model_config
+from iauditor_exporter.modules.sql import test_sql_settings
 
 from pprint import pp
 from rich import print, box
@@ -544,25 +544,25 @@ def parse_command_line_arguments(logger):
 
 
 def get_port(db_type):
-    if db_type == 'sql':
+    if db_type == 'mssql':
         return '1433'
     elif db_type == 'postgres':
         return '5432'
     elif db_type == 'mysql':
         return '3308'
     else:
-        return None
+        return ''
 
 
 def get_schema(db_type):
-    if db_type == 'sql':
+    if db_type == 'mssql':
         return 'dbo'
     elif db_type == 'postgres':
         return 'public'
     elif db_type == 'mysql':
-        return None
+        return ''
     else:
-        return None
+        return ''
 
 
 def get_default_db(db_type):
@@ -572,17 +572,19 @@ def get_default_db(db_type):
         return 'auditor'
 
 
-def ask_question(logger, str, q_type, choices=None, special=None, default=[]):
+def ask_question(logger, str, q_type, choices=None, special=None, default=''):
     response = None
     if q_type == 'multi':
+        if default == '':
+            default = []
         response = questionary.select(str, default=default,
                                       choices=choices
                                       ).ask()
     elif q_type == 'text':
-        response = questionary.text(str).ask()
+        response = questionary.text(str, default=default).ask()
 
     elif q_type == 'int':
-        response = questionary.text(str).ask()
+        response = questionary.text(str, default=default).ask()
         response = int(response)
 
     elif q_type == 'bool':
@@ -610,7 +612,7 @@ def sanitise_config_name(logger, config_name):
 
 def setup_database(logger):
     db_type = questionary.select("Which database type are you using?",
-                                 choices=[{'name': "SQL", 'value': 'mssql+pyodbc_mssql'},
+                                 choices=[{'name': "SQL", 'value': 'mssql'},
                                           {'name': "MySQL", 'value': 'mysql'},
                                           {'name': "Postgres", 'value': 'postgres'}]
                                  ).ask()
@@ -621,6 +623,9 @@ def setup_database(logger):
                    'database_port': ask_question(logger, 'Database Port', 'int', default=get_port(db_type)),
                    'database_schema': questionary.text("Database Schema", default=get_schema(db_type)).ask(),
                    'database_name': questionary.text("Database Name", default=get_default_db(db_type)).ask()}
+
+    if db_type == 'mssql':
+        db_settings['database_name'] = db_settings['database_name'] + '?driver=ODBC Driver 17 for SQL Server'
 
     return db_settings
 
@@ -671,7 +676,7 @@ def update_key(logger, settings, key):
                 settings['export_options'][k] = v
         else:
             logger.warning('Connection unsuccessful, trying again.')
-            setup_database()
+            setup_database(logger)
     else:
         print(f'{key} is not a recognised setting. If unsure, start a new config file.')
 
