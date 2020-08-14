@@ -329,8 +329,8 @@ class CsvExporter:
         audit_data_as_list.append(self.audit_json["archived"])
         return audit_data_as_list
 
-    @staticmethod
-    def get_header_item(header_data, header_item_type):
+    # @staticmethod
+    def get_header_item(self, header_data, header_item_type):
         """
         Return standard header item response string
         :param header_data:         Audit JSON array of header items
@@ -344,7 +344,11 @@ class CsvExporter:
                 if "text" in item["responses"].keys():
                     return get_json_property(item, "responses", "text")
                 if "datetime" in item["responses"].keys():
-                    return get_json_property(item, "responses", "datetime")
+                    date_found = get_json_property(item, "responses", "datetime")
+                    if date_found:
+                        date_found = self.format_date_time(date_found)
+                    return date_found
+                    # return get_json_property(item, "responses", "datetime")
                 if "location_text" in item["responses"].keys():
                     return get_json_property(item, "responses", "location_text")
         return EMPTY_RESPONSE
@@ -358,6 +362,11 @@ class CsvExporter:
         """
         if date:
             date_object = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            year = date_object.year
+            if year < 1900:
+                date_object = date_object.replace(year=1900)
+                print(str(date_object))
+                sys.exit()
             formatted_date = date_object.strftime("%d %B %Y")
             formatted_time = date_object.strftime("%I:%M:%S %p")
             return formatted_date + " " + formatted_time

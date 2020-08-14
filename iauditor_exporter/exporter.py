@@ -192,7 +192,9 @@ def loop_through_chunks(
 
     for chunk in chunks_to_process:
         if per_chunk > export_total:
-            logger.info(f"Downloading {str(export_total)} total inspections...")
+            logger.info(
+                f"Downloading {str(export_total)} total inspections..."
+            )
         else:
             logger.info(
                 f"Downloading {str(per_chunk)} of {str(export_total)} total inspections...)"

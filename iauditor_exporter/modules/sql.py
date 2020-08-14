@@ -215,7 +215,7 @@ def bulk_import_sql(logger, df_dict, get_started):
 
     for audit in df_dict:
         try:
-            logger.info(f"Bulk inserting {audit['AuditID']}")
+            logger.info(f"Bulk inserting {audit[0]['AuditID']}")
             session.bulk_insert_mappings(database, audit)
         except KeyboardInterrupt:
             logger.warning("Interrupted by user, exiting.")
@@ -248,6 +248,7 @@ def bulk_import_sql(logger, df_dict, get_started):
             session.rollback()
             session.close()
             logger.warning("Something went wrong. Here are the details: {}".format(ex))
+            sys.exit()
         session.commit()
 
 
