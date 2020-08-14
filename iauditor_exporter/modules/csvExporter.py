@@ -348,7 +348,6 @@ class CsvExporter:
                     if date_found:
                         date_found = self.format_date_time(date_found)
                     return date_found
-                    # return get_json_property(item, "responses", "datetime")
                 if "location_text" in item["responses"].keys():
                     return get_json_property(item, "responses", "location_text")
         return EMPTY_RESPONSE
@@ -365,8 +364,6 @@ class CsvExporter:
             year = date_object.year
             if year < 1900:
                 date_object = date_object.replace(year=1900)
-                print(str(date_object))
-                sys.exit()
             formatted_date = date_object.strftime("%d %B %Y")
             formatted_time = date_object.strftime("%I:%M:%S %p")
             return formatted_date + " " + formatted_time
