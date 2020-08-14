@@ -280,7 +280,10 @@ class CsvExporter:
         """
         audit_data_property = self.audit_json["audit_data"]
         template_data_property = self.audit_json["template_data"]
-        audit_date_completed = audit_data_property["date_completed"]
+        if 'date_completed' in audit_data_property:
+            audit_date_completed = audit_data_property["date_completed"]
+        else:
+            audit_date_completed = None
         header_data = self.audit_json["header_items"]
         audit_data_as_list = list()
         audit_data_as_list.append(audit_data_property["authorship"]["owner"])
