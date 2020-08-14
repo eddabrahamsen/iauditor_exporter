@@ -215,7 +215,7 @@ def bulk_import_sql(logger, df_dict, get_started):
 
     for audit in df_dict:
         try:
-            logger.info(f"Bulk inserting {audit[0]['AuditID']}")
+            logger.info(f"Inserting {audit[0]['AuditID']} into the database")
             session.bulk_insert_mappings(database, audit)
         except KeyboardInterrupt:
             logger.warning("Interrupted by user, exiting.")
@@ -239,8 +239,7 @@ def bulk_import_sql(logger, df_dict, get_started):
         #         session.add(row_to_dict)
         except IntegrityError:
             logger.info(
-                "Unable to bulk insert, likely due to duplicate inspections. Updating instead. (this may take a "
-                "minute or two depending on the length of the inspection.) "
+                "Duplicate inspection found, updating instead."
             )
             session.rollback()
             session.bulk_update_mappings(database, audit)

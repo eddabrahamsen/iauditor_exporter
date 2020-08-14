@@ -288,7 +288,7 @@ questions = {
         "parent": "export_options",
     },
     "database_port": {
-        "type": "text",
+        "type": "int",
         "question": "Database port",
         "header": """
     Specify the port to access your database. For reference, default ports are: 
