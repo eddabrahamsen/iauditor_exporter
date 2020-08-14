@@ -1,8 +1,14 @@
 import os
 import sys
 
-from iauditor_exporter.modules.logger import log_critical_error, create_directory_if_not_exists
-from iauditor_exporter.modules.global_variables import ACTIONS_SYNC_MARKER_FILENAME, SYNC_MARKER_FILENAME
+from iauditor_exporter.modules.logger import (
+    log_critical_error,
+    create_directory_if_not_exists,
+)
+from iauditor_exporter.modules.global_variables import (
+    ACTIONS_SYNC_MARKER_FILENAME,
+    SYNC_MARKER_FILENAME,
+)
 import dateparser
 from dateparser.search import search_dates
 
@@ -14,20 +20,25 @@ def parse_ls(date):
     else:
         date = parsed_date
     if not date:
-        print('The date provided cannot be parsed. Defaulting to the beginning of your account.')
-        date = dateparser.parse('2000-01-01T00:00:00.000Z')
+        print(
+            "The date provided cannot be parsed. Defaulting to the beginning of your account."
+        )
+        date = dateparser.parse("2000-01-01T00:00:00.000Z")
     return date
 
 
 def set_last_successful_file_name(config_name, audit_or_action):
-    if config_name is not None and audit_or_action == 'audits':
-        last_successful_file = 'last_successful/last_successful-{}.txt'.format(config_name)
-    elif config_name is not None and audit_or_action == 'actions':
-        last_successful_file = 'last_successful/last_successful_actions_export-{}.txt'.format(
-            config_name)
-    elif audit_or_action == 'audits':
+    if config_name is not None and audit_or_action == "audits":
+        last_successful_file = "last_successful/last_successful-{}.txt".format(
+            config_name
+        )
+    elif config_name is not None and audit_or_action == "actions":
+        last_successful_file = "last_successful/last_successful_actions_export-{}.txt".format(
+            config_name
+        )
+    elif audit_or_action == "audits":
         last_successful_file = SYNC_MARKER_FILENAME
-    elif audit_or_action == 'actions':
+    elif audit_or_action == "actions":
         last_successful_file = ACTIONS_SYNC_MARKER_FILENAME
     else:
         sys.exit()
@@ -42,10 +53,10 @@ def update_sync_marker_file(date_modified, config_name):
     :param date_modified:   modified_at value from most recently downloaded audit JSON
     :return:
     """
-    
-    last_successful_file = set_last_successful_file_name(config_name, 'audits')
-    
-    with open(last_successful_file, 'w') as sync_marker_file:
+
+    last_successful_file = set_last_successful_file_name(config_name, "audits")
+
+    with open(last_successful_file, "w") as sync_marker_file:
         sync_marker_file.write(date_modified)
 
 
@@ -58,24 +69,26 @@ def get_last_successful(logger, config_name):
     :config_name:
 
     """
-    last_successful_file = set_last_successful_file_name(config_name, 'audits')
+    last_successful_file = set_last_successful_file_name(config_name, "audits")
 
     if os.path.isfile(last_successful_file):
-        with open(last_successful_file, 'r+') as last_run:
+        with open(last_successful_file, "r+") as last_run:
             check_for_rows = last_run.readlines()
             if check_for_rows:
                 last_successful = check_for_rows[0]
                 last_successful = last_successful.strip()
             else:
-                last_successful = '2000-01-01T00:00:00.000Z'
+                last_successful = "2000-01-01T00:00:00.000Z"
 
     else:
-        beginning_of_time = '2000-01-01T00:00:00.000Z'
+        beginning_of_time = "2000-01-01T00:00:00.000Z"
         last_successful = beginning_of_time
-        create_directory_if_not_exists(logger, 'last_successful')
-        with open(last_successful_file, 'w') as last_run:
+        create_directory_if_not_exists(logger, "last_successful")
+        with open(last_successful_file, "w") as last_run:
             last_run.write(last_successful)
-        logger.info('Searching for audits since the beginning of time: ' + beginning_of_time)
+        logger.info(
+            "Searching for audits since the beginning of time: " + beginning_of_time
+        )
     return last_successful
 
 
@@ -87,13 +100,15 @@ def update_actions_sync_marker_file(logger, date_modified, config_name):
 
     """
 
-    last_successful_file = set_last_successful_file_name(config_name, 'actions')
+    last_successful_file = set_last_successful_file_name(config_name, "actions")
 
     try:
-        with open(last_successful_file, 'w') as actions_sync_marker_file:
+        with open(last_successful_file, "w") as actions_sync_marker_file:
             actions_sync_marker_file.write(date_modified)
     except Exception as ex:
-        log_critical_error(logger, ex, 'Unable to open ' + last_successful_file + ' for writing')
+        log_critical_error(
+            logger, ex, "Unable to open " + last_successful_file + " for writing"
+        )
         exit()
 
 
@@ -105,16 +120,20 @@ def get_last_successful_actions_export(logger, config_name):
     :return:        A datetime value (or 2000-01-01 if syncing since the 'beginning of time')
     """
 
-    last_successful_file = set_last_successful_file_name(config_name, 'actions')
+    last_successful_file = set_last_successful_file_name(config_name, "actions")
 
     if os.path.isfile(last_successful_file):
-        with open(last_successful_file, 'r+') as last_run:
+        with open(last_successful_file, "r+") as last_run:
             last_successful_actions_export = last_run.readlines()[0]
-            logger.info('Searching for actions modified after ' + last_successful_actions_export)
+            logger.info(
+                "Searching for actions modified after " + last_successful_actions_export
+            )
     else:
-        beginning_of_time = '2000-01-01T00:00:00.000Z'
+        beginning_of_time = "2000-01-01T00:00:00.000Z"
         last_successful_actions_export = beginning_of_time
-        with open(last_successful_file, 'w') as last_run:
+        with open(last_successful_file, "w") as last_run:
             last_run.write(last_successful_actions_export)
-        logger.info('Searching for actions since the beginning of time: ' + beginning_of_time)
+        logger.info(
+            "Searching for actions since the beginning of time: " + beginning_of_time
+        )
     return last_successful_actions_export
