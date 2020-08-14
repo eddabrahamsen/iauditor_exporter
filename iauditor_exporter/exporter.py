@@ -197,7 +197,7 @@ def loop_through_chunks(
             )
         else:
             logger.info(
-                f"Downloading {str(per_chunk)} of {str(export_total)} total inspections...)"
+                f"Downloading inspection data..."
             )
         audits_to_process = sc_client.raise_pool(chunk)
         all_audits = []
@@ -218,13 +218,15 @@ def loop_through_chunks(
                     + str(export_total)
                     + ")"
                 )
-                debug_code, modified_at = process_audit(
+                process_audit(
                     logger,
                     settings,
                     sc_client,
                     audit,
                     get_started,
                     all_audits=all_audits,
+                    debug_code=None,
+                    modified_at=None
                 )
                 export_count += 1
         if "sql" in settings[EXPORT_FORMATS]:
@@ -234,7 +236,7 @@ def loop_through_chunks(
             update_sync_marker_file(modified_at, settings[CONFIG_NAME])
 
 
-def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]):
+def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[], debug_code=None, modified_at=None):
     """
     Export audit in the format specified in settings. Formats include PDF, JSON, CSV, MS Word (docx), media, or
     web report link.
@@ -243,6 +245,7 @@ def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]
     :param sc_client:   instance of safetypy.SafetyCulture class
     :param audit:       Audit JSON to be exported
     """
+
     if not check_if_media_sync_offset_satisfied(logger, settings, audit):
         return
     audit_id = audit["audit_id"]
@@ -292,6 +295,10 @@ def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]
     modified_at = audit["modified_at"]
 
     return debug_code, modified_at
+    # else:
+    #     debug_code = ""
+    #     modified_at = ""
+    #     return debug_code, modified_at
     # logger.debug("setting last modified to " + audit["modified_at"])
     # update_sync_marker_file(audit["modified_at"], settings[CONFIG_NAME])
 
