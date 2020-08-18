@@ -206,9 +206,9 @@ def load_setting_media_sync_offset(logger, config_settings):
             "media_sync_offset_in_seconds"
         ]
         if (
-                media_sync_offset is None
-                or media_sync_offset < 0
-                or not isinstance(media_sync_offset, int)
+            media_sync_offset is None
+            or media_sync_offset < 0
+            or not isinstance(media_sync_offset, int)
         ):
             media_sync_offset = DEFAULT_MEDIA_SYNC_OFFSET_IN_SECONDS
         return media_sync_offset
@@ -234,17 +234,17 @@ def parse_export_filename(audit_json, filename_item_id):
     # When this item ID is specified in the custom export filename configuration, the audit_data.name property
     # will be used to populate the data as it covers all cases.
     if (
-            filename_item_id == AUDIT_TITLE_ITEM_ID
-            and "audit_data" in audit_json.keys()
-            and "name" in audit_json["audit_data"].keys()
+        filename_item_id == AUDIT_TITLE_ITEM_ID
+        and "audit_data" in audit_json.keys()
+        and "name" in audit_json["audit_data"].keys()
     ):
         return audit_json["audit_data"]["name"].replace("/", "_")
     for item in audit_json["header_items"]:
         if item["item_id"] == filename_item_id:
             if "responses" in item.keys():
                 if (
-                        "text" in item["responses"].keys()
-                        and item["responses"]["text"].strip() != ""
+                    "text" in item["responses"].keys()
+                    and item["responses"]["text"].strip() != ""
                 ):
                     return item["responses"]["text"]
     return None
@@ -500,7 +500,7 @@ def load_config_settings(logger, path_to_config_file, docker_enabled=False):
             ACTIONS_TABLE: load_actions_table(
                 config_settings["export_options"]["sql_table"]
             )
-                           + "_actions",
+            + "_actions",
             ACTIONS_MERGE_ROWS: config_settings["export_options"]["actions_merge_rows"],
         }
     return settings
@@ -517,10 +517,10 @@ def configure(logger, path_to_config_file, export_formats, docker_enabled, chunk
 
     config_settings = load_config_settings(logger, path_to_config_file, docker_enabled)
     config_settings[EXPORT_FORMATS] = export_formats
-    config_settings['chunks'] = chunks
+    config_settings["chunks"] = chunks
     if (
-            config_settings[PROXY_HTTP] is not None
-            and config_settings[PROXY_HTTPS] is not None
+        config_settings[PROXY_HTTP] is not None
+        and config_settings[PROXY_HTTPS] is not None
     ):
         proxy_settings = {
             "http": config_settings[PROXY_HTTP],
@@ -629,13 +629,13 @@ def parse_command_line_arguments(logger):
         "--format",
         nargs="*",
         help="formats to download, valid options are pdf, "
-             "json, docx, csv, media, web-report-link, actions, pickle, sql",
+        "json, docx, csv, media, web-report-link, actions, pickle, sql",
     )
     parser.add_argument(
         "--list_preferences",
         nargs="*",
         help="display all preferences, or restrict to specific"
-             " template_id if supplied as additional argument",
+        " template_id if supplied as additional argument",
     )
     parser.add_argument(
         "--loop", nargs="*", help="execute continuously until interrupted"
@@ -644,9 +644,11 @@ def parse_command_line_arguments(logger):
         "--setup", action="store_true", help="Helps set up the script with ease."
     )
     parser.add_argument(
-        "--chunks", type=int, help="Specify a smaller number of chunks when "
-                                   "exporting large numbers of "
-                                   "PDFs, DOCX or Media "
+        "--chunks",
+        type=int,
+        help="Specify a smaller number of chunks when "
+        "exporting large numbers of "
+        "PDFs, DOCX or Media ",
     )
     args = parser.parse_args()
 
@@ -707,7 +709,7 @@ def parse_command_line_arguments(logger):
         args.list_preferences,
         loop_enabled,
         docker_enabled,
-        chunks
+        chunks,
     )
 
 
@@ -809,7 +811,7 @@ def setup_database(logger):
 
     if db_type == "mssql":
         db_settings["database_name"] = (
-                db_settings["database_name"] + "?driver=ODBC Driver 17 for SQL Server"
+            db_settings["database_name"] + "?driver=ODBC Driver 17 for SQL Server"
         )
 
     return db_settings
@@ -866,7 +868,7 @@ def update_key(logger, settings, key):
         print(f"{key} is not a recognised setting. If unsure, start a new config file.")
 
 
-def modify_choice(logger, settings, config_path, default_pos='export_path'):
+def modify_choice(logger, settings, config_path, default_pos="export_path"):
     options = []
     for k, v in settings.items():
         options.append(Separator())
@@ -883,7 +885,9 @@ def modify_choice(logger, settings, config_path, default_pos='export_path'):
     if exit_no_save not in options:
         exit_list = [exit_save, exit_no_save, test_sql, Separator()]
         options = exit_list + options
-    to_modify = questionary.select("Select an option to modify:", choices=options, default=default_pos).ask()
+    to_modify = questionary.select(
+        "Select an option to modify:", choices=options, default=default_pos
+    ).ask()
     if to_modify:
         to_modify = to_modify.split("-")[0].strip()
     else:

@@ -148,7 +148,7 @@ def sync_exports(logger, settings, sc_client):
         # back to square one. From testing, 500 is a good number to use here and I do not recommend
         # going higher.
 
-        per_chunk = settings['chunks']
+        per_chunk = settings["chunks"]
 
         if "sql" in settings[EXPORT_FORMATS]:
             get_started = sql_setup(logger, settings, "audit")
@@ -192,13 +192,9 @@ def loop_through_chunks(
 
     for chunk in chunks_to_process:
         if per_chunk > export_total:
-            logger.info(
-                f"Downloading {str(export_total)} total inspections..."
-            )
+            logger.info(f"Downloading {str(export_total)} total inspections...")
         else:
-            logger.info(
-                f"Downloading inspection data..."
-            )
+            logger.info(f"Downloading inspection data...")
         audits_to_process = sc_client.raise_pool(chunk)
         all_audits = []
         audit_pbar = tqdm(
@@ -226,7 +222,7 @@ def loop_through_chunks(
                     get_started,
                     all_audits=all_audits,
                     debug_code=None,
-                    modified_at=None
+                    modified_at=None,
                 )
                 export_count += 1
         if "sql" in settings[EXPORT_FORMATS]:
@@ -236,7 +232,16 @@ def loop_through_chunks(
             update_sync_marker_file(modified_at, settings[CONFIG_NAME])
 
 
-def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[], debug_code=None, modified_at=None):
+def process_audit(
+    logger,
+    settings,
+    sc_client,
+    audit,
+    get_started,
+    all_audits=[],
+    debug_code=None,
+    modified_at=None,
+):
     """
     Export audit in the format specified in settings. Formats include PDF, JSON, CSV, MS Word (docx), media, or
     web report link.

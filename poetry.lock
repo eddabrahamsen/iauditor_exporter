@@ -324,14 +324,6 @@ version = "2.4.7"
 
 [[package]]
 category = "main"
-description = "PyPyODBC - A Pure Python ODBC module by ctypes"
-name = "pypyodbc"
-optional = true
-python-versions = "*"
-version = "1.3.5"
-
-[[package]]
-category = "main"
 description = "A python implmementation of GNU readline."
 name = "pyreadline"
 optional = false
@@ -452,7 +444,7 @@ description = "Beta version of the SafetyCulture Python SDK"
 name = "safetyculture-sdk-python-beta"
 optional = false
 python-versions = ">=3.5,<4.0"
-version = "2.17"
+version = "2.2.0"
 
 [package.dependencies]
 future = ">=0.18.2"
@@ -583,7 +575,7 @@ postgres = ["psycopg2"]
 sql = ["pyodbc"]
 
 [metadata]
-content-hash = "358201dde1923e6140d98b359b43ecd072c8a72705e92d802f1b9454c83702de"
+content-hash = "82632c1a2b09eb3e44bf198236ddd72e47635eb721217042e312299427329b7d"
 lock-version = "1.1"
 python-versions = "^3.7"
 
@@ -777,9 +769,6 @@ pyparsing = [
     {file = "pyparsing-2.4.7-py2.py3-none-any.whl", hash = "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"},
     {file = "pyparsing-2.4.7.tar.gz", hash = "sha256:c203ec8783bf771a155b207279b9bccb8dea02d8f0c9e5f8ead507bc3246ecc1"},
 ]
-pypyodbc = [
-    {file = "pypyodbc-1.3.5.2.zip", hash = "sha256:90a9a1fdbe5c06b875155d82562beb50bb22743190ca9b46a2cb71030ee65496"},
-]
 pyreadline = [
     {file = "pyreadline-2.1.win-amd64.exe", hash = "sha256:9ce5fa65b8992dfa373bddc5b6e0864ead8f291c94fbfec05fbd5c836162e67b"},
     {file = "pyreadline-2.1.win32.exe", hash = "sha256:65540c21bfe14405a3a77e4c085ecfce88724743a4ead47c66b84defcf82c32e"},
@@ -846,8 +835,8 @@ rich = [
     {file = "rich-4.2.2.tar.gz", hash = "sha256:89ea8935f40357d724ac8a2c0eac1f2042fc2ff63436a984042c12a9f111cce6"},
 ]
 safetyculture-sdk-python-beta = [
-    {file = "safetyculture-sdk-python-beta-2.17.tar.gz", hash = "sha256:17af9c18675cb1da0c19c3d500b7d04fe6da87d6e13d959376691e789bf4d9d5"},
-    {file = "safetyculture_sdk_python_beta-2.17-py3-none-any.whl", hash = "sha256:139b9735feecaa4ee7a4af210b8f44e4e66fd42096d4b4c902fdf0ea68379424"},
+    {file = "safetyculture-sdk-python-beta-2.2.0.tar.gz", hash = "sha256:11c89651d1264d31bc703c87751220e61e46d115d4b49cfc19bbd53f34b84456"},
+    {file = "safetyculture_sdk_python_beta-2.2.0-py3-none-any.whl", hash = "sha256:2af994f846f923a315ee142370d9cb5b5393bfa1c03bdd0d4aeda3059a260e0a"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

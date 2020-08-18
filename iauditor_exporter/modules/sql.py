@@ -17,26 +17,42 @@ from iauditor_exporter.modules.model import *
 def test_sql_settings(logger, settings):
     Base = declarative_base()
     Base.metadata.clear()
-    connection_string = "{}://{}:{}@{}:{}/{}".format(
-        settings['export_options']["database_type"],
-        settings['export_options']["database_user"],
-        settings['export_options']["database_pwd"],
-        settings['export_options']["database_server"],
-        settings['export_options']["database_port"],
-        settings['export_options']["database_name"],
-    )
+    if "export_options" in settings:
+        for k, v in settings["export_options"].items():
+            if k in [
+                "database_type",
+                "database_user",
+                "database_pwd",
+                "database_server",
+                "database_port",
+                "database_name",
+            ]:
+                if v is None:
+                    logger.warning(
+                        f"All fields must be filled out to test your database settings. At least {k} is empty."
+                    )
+                    return False
 
-    engine = create_engine(connection_string, pool_pre_ping=True)
-    logger.info("Attempting to connect to database...")
-    try:
-        conn = engine.connect()
-        results = conn.execute("SELECT 1")
-        logger.info("Connected successfully.")
-        conn.close()
-        return True
-    except:
-        logger.warning("Unable to connect to database")
-        return False
+        connection_string = "{}://{}:{}@{}:{}/{}".format(
+            settings["export_options"]["database_type"],
+            settings["export_options"]["database_user"],
+            settings["export_options"]["database_pwd"],
+            settings["export_options"]["database_server"],
+            settings["export_options"]["database_port"],
+            settings["export_options"]["database_name"],
+        )
+
+        engine = create_engine(connection_string, pool_pre_ping=True)
+        logger.info("Attempting to connect to database...")
+        try:
+            conn = engine.connect()
+            results = conn.execute("SELECT 1")
+            logger.info("Connected successfully.")
+            conn.close()
+            return True
+        except Exception as ex:
+            logger.warning(f"Unable to connect to database: {ex}")
+            return False
 
 
 def sql_setup(logger, settings, action_or_audit):
@@ -238,9 +254,7 @@ def bulk_import_sql(logger, df_dict, get_started):
         #     else:
         #         session.add(row_to_dict)
         except IntegrityError:
-            logger.info(
-                "Duplicate inspection found, updating instead."
-            )
+            logger.info("Duplicate inspection found, updating instead.")
             session.rollback()
             session.bulk_update_mappings(database, audit)
         except Exception as ex:

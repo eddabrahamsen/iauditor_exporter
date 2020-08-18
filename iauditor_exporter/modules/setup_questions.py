@@ -319,5 +319,5 @@ Postgres: public.
         For example, if your database name was 'iAuditor', you'd enter: iAuditor?driver=ODBC Driver 17 for SQL Server 
         """,
         "parent": "export_options",
-    }
+    },
 }
