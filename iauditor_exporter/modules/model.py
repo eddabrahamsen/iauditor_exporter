@@ -7,12 +7,15 @@ from sqlalchemy import (
     Boolean,
     BigInteger,
     Unicode,
+    schema,
 )
 
 
-def set_table(table, merge, Base):
+def set_table(table, merge, Base, user_schema=None):
     class Database(Base):
         __tablename__ = table
+        if user_schema:
+            __table_args__ = {"schema": user_schema}
         SortingIndex = Column(Integer)
         ItemType = Column(String(20))
         Label = Column(Unicode())
@@ -63,6 +66,8 @@ def set_table(table, merge, Base):
         AuditArea = Column(Unicode())
         AuditRegion = Column(Unicode())
         Archived = Column(Boolean)
+        if user_schema:
+            schema = user_schema
 
     return Database
 
@@ -117,10 +122,13 @@ SQL_HEADER_ROW = [
 ]
 
 
-def set_actions_table(table, merge, Base):
+def set_actions_table(table, merge, Base, user_schema=None):
     class ActionsDatabase(Base):
         __tablename__ = table
+        if user_schema:
+            __table_args__ = {"schema": user_schema}
         id = Column(Integer, primary_key=False, autoincrement=True)
+        title = Column(Unicode())
         description = Column(Unicode())
         assignee = Column(Unicode())
         priority = Column(Unicode())
@@ -142,12 +150,15 @@ def set_actions_table(table, merge, Base):
         createdDatetime = Column(DateTime)
         modifiedDatetime = Column(DateTime)
         completedDatetime = Column(DateTime)
+        if schema:
+            schema = user_schema
 
     return ActionsDatabase
 
 
 ACTIONS_HEADER_ROW = [
     "actionId",
+    "title",
     "description",
     "assignee",
     "priority",

@@ -1,9 +1,10 @@
 import os
 import shutil
+from datetime import datetime, timedelta
+
 import dateutil
 import pytz
 
-from datetime import datetime, timedelta
 from iauditor_exporter.modules.global_variables import (
     MEDIA_SYNC_OFFSET_IN_SECONDS,
     EXPORT_PATH,

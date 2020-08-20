@@ -7,6 +7,7 @@ def transform_action_object_to_list(action):
     get_json_property = csvExporter.get_json_property
     actions_list = [
         get_json_property(action, "action_id"),
+        get_json_property(action, "title"),
         get_json_property(action, "description"),
     ]
     assignee_list = []

@@ -1,11 +1,11 @@
 # coding=utf-8
 # Author: SafetyCulture
 # Copyright: © SafetyCulture 2016
-import time
 import sys
-import pandas as pd
-import numpy as np
+import time
 
+import numpy as np
+import pandas as pd
 from rich import print
 from tqdm import tqdm
 
@@ -214,15 +214,13 @@ def loop_through_chunks(
                     + str(export_total)
                     + ")"
                 )
-                process_audit(
+                debug_code, modified_at = process_audit(
                     logger,
                     settings,
                     sc_client,
                     audit,
                     get_started,
                     all_audits=all_audits,
-                    debug_code=None,
-                    modified_at=None,
                 )
                 export_count += 1
         if "sql" in settings[EXPORT_FORMATS]:
@@ -232,19 +230,12 @@ def loop_through_chunks(
             update_sync_marker_file(modified_at, settings[CONFIG_NAME])
 
 
-def process_audit(
-    logger,
-    settings,
-    sc_client,
-    audit,
-    get_started,
-    all_audits=[],
-    debug_code=None,
-    modified_at=None,
-):
+def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]):
     """
     Export audit in the format specified in settings. Formats include PDF, JSON, CSV, MS Word (docx), media, or
     web report link.
+    :param get_started:
+    :param all_audits:
     :param logger:      The logger
     :param settings:    Settings from command line and configuration file
     :param sc_client:   instance of safetypy.SafetyCulture class
@@ -300,12 +291,6 @@ def process_audit(
     modified_at = audit["modified_at"]
 
     return debug_code, modified_at
-    # else:
-    #     debug_code = ""
-    #     modified_at = ""
-    #     return debug_code, modified_at
-    # logger.debug("setting last modified to " + audit["modified_at"])
-    # update_sync_marker_file(audit["modified_at"], settings[CONFIG_NAME])
 
 
 def db_formatter(settings, audit_json, all_audits=[]):

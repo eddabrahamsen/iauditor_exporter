@@ -1,6 +1,8 @@
 import os
-import iauditor_exporter.modules.csvExporter as csvExporter
+
 import unicodecsv as csv
+
+import iauditor_exporter.modules.csvExporter as csvExporter
 from iauditor_exporter.modules.global_variables import EXPORT_PATH
 from iauditor_exporter.modules.logger import log_critical_error
 

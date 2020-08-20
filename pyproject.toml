@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iauditor_exporter"
-version = "1.6.3"
+version = "1.6.5"
 description = "The iAuditor Exporter tool is the primary way to bulk export iAuditor information for use in BI tools such as PowerBI. The tool is coded in the Python programming language and can be ran simply and easily on any computer with Python installed."
 authors = ["Edd <edward.abrahamsen-mills@safetyculture.io>"]
 packages = [

@@ -3,7 +3,10 @@ import re
 
 import questionary as questionary
 import yaml
-from questionary import Separator, prompt
+from questionary import Separator
+from rich import print, box
+from rich.panel import Panel
+from safetypy import safetypy as sp
 from yaml.scanner import ScannerError
 
 from iauditor_exporter.modules.global_variables import *
@@ -16,13 +19,8 @@ from iauditor_exporter.modules.logger import (
     log_critical_error,
     create_directory_if_not_exists,
 )
-from safetypy import safetypy as sp
 from iauditor_exporter.modules.setup_questions import questions, model_config
 from iauditor_exporter.modules.sql import test_sql_settings
-
-from pprint import pp
-from rich import print, box
-from rich.panel import Panel
 
 
 def load_setting_api_access_token(logger, config_settings):

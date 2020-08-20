@@ -1,8 +1,8 @@
 import errno
-from datetime import datetime
 import logging
 import os
 import sys
+from datetime import datetime
 
 import coloredlogs
 

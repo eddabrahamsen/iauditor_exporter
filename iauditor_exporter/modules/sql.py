@@ -1,12 +1,11 @@
 import datetime
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from sqlalchemy import *
 from sqlalchemy.exc import IntegrityError, OperationalError
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 import iauditor_exporter.modules.csvExporter as csvExporter
 from iauditor_exporter.modules.actions import transform_action_object_to_list
@@ -74,15 +73,16 @@ def sql_setup(logger, settings, action_or_audit):
             table = settings[SQL_TABLE]
         else:
             table = "iauditor_data"
-        Database = set_table(table, merge, Base)
+        Database = set_table(table, merge, Base, user_schema=settings[DB_SCHEMA])
     elif action_or_audit == "actions":
         if settings[ACTIONS_TABLE] is not None:
             table = settings[ACTIONS_TABLE]
         else:
             table = "iauditor_actions_data"
-        Database = set_actions_table(table, actions_merge, Base)
+        Database = set_actions_table(
+            table, actions_merge, Base, user_schema=settings[DB_SCHEMA]
+        )
     else:
-        print("No Match")
         sys.exit()
 
     if HEROKU_URL in settings:
@@ -119,8 +119,7 @@ def sql_setup(logger, settings, action_or_audit):
         else:
             validation = input(
                 "It doesn't look like a table called {} exists on your server. Would you like the "
-                "script to try and create the table for you now? (If you're using "
-                "docker, you need to set APPROVE_TABLE_CREATION to true in your config file) "
+                "script to try and create the table for you now?"
                 "(y/n)  ".format(db_setting)
             )
             validation = validation.lower()
@@ -232,7 +231,7 @@ def bulk_import_sql(logger, df_dict, get_started):
     for audit in df_dict:
         try:
             logger.info(f"Inserting {audit[0]['AuditID']} into the database")
-            session.bulk_insert_mappings(database, audit)
+            session.bulk_insert_mappings(database, audit, render_nulls=True)
         except KeyboardInterrupt:
             logger.warning("Interrupted by user, exiting.")
             session.rollback()
@@ -292,16 +291,10 @@ def save_exported_actions_to_db(logger, actions_array, settings, get_started):
     actions_db = get_started[2]
     session = get_started[1]
 
-    # engine = get_started[1]
-    # actions_db = get_started[4]
-
     if not actions_array:
-        # logger.info('No actions returned after ' + get_last_successful_actions_export(logger, settings[CONFIG_NAME]))
         logger.info("No actions returned.")
         return
     logger.info("Exporting " + str(len(actions_array)) + " actions")
-    # Session = sessionmaker(bind=engine)
-    # session = Session()
     bulk_actions = []
     for action in actions_array:
         action_as_list = transform_action_object_to_list(action)
@@ -322,7 +315,7 @@ def save_exported_actions_to_db(logger, actions_array, settings, get_started):
     df_dict = df.to_dict(orient="records")
 
     try:
-        session.bulk_insert_mappings(actions_db, df_dict)
+        session.bulk_insert_mappings(actions_db, df_dict, render_nulls=True)
     except KeyboardInterrupt:
         logger.warning("Interrupted by user, exiting.")
         session.rollback()

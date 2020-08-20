@@ -1,10 +1,10 @@
-import sqlalchemy
-import unicodecsv as csv
-import json
-import sys
-import os
 import copy
+import json
+import os
+import sys
 from datetime import datetime
+
+import unicodecsv as csv
 
 CSV_HEADER_ROW = [
     "SortingIndex",
@@ -571,10 +571,12 @@ class CsvExporter:
         :param item:    single item in JSON format
         :return:        score percentage property or empty string if property does not exist
         """
-        if isinstance(get_json_property(item, "scoring", SCORE_PERCENTAGE), float):
+        if isinstance(
+            get_json_property(item, "scoring", SCORE_PERCENTAGE), (float, int)
+        ):
             return get_json_property(item, "scoring", SCORE_PERCENTAGE)
         elif isinstance(
-            get_json_property(item, "scoring", COMBINED_SCORE_PERCENTAGE), float
+            get_json_property(item, "scoring", COMBINED_SCORE_PERCENTAGE), (float, int)
         ):
             return get_json_property(item, "scoring", COMBINED_SCORE_PERCENTAGE)
         else:

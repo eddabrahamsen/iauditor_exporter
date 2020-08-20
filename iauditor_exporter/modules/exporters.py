@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 import unicodecsv as csv
+
 import iauditor_exporter.modules.csvExporter as csvExporter
 from iauditor_exporter.modules.actions import transform_action_object_to_list
 from iauditor_exporter.modules.global_variables import (
@@ -172,6 +173,7 @@ def save_exported_actions_to_csv_file(logger, export_path, actions_array, config
         actions_csv_wr.writerow(
             [
                 "actionId",
+                "title",
                 "description",
                 "assignee",
                 "priority",

@@ -1,16 +1,17 @@
 import os
 import sys
 
-from iauditor_exporter.modules.logger import (
-    log_critical_error,
-    create_directory_if_not_exists,
-)
+import dateparser
+from dateparser.search import search_dates
+
 from iauditor_exporter.modules.global_variables import (
     ACTIONS_SYNC_MARKER_FILENAME,
     SYNC_MARKER_FILENAME,
 )
-import dateparser
-from dateparser.search import search_dates
+from iauditor_exporter.modules.logger import (
+    log_critical_error,
+    create_directory_if_not_exists,
+)
 
 
 def parse_ls(date):
