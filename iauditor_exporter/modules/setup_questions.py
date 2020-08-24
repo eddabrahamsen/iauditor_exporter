@@ -6,7 +6,7 @@ model_config = {
         "proxy_http": None,
         "proxy_https": None,
     },
-    "config_name": None,
+    "config_name": "iauditor",
     "export_options": {
         "export_path": None,
         "filename": None,

@@ -866,7 +866,7 @@ def update_key(logger, settings, key):
         print(f"{key} is not a recognised setting. If unsure, start a new config file.")
 
 
-def modify_choice(logger, settings, config_path, default_pos="export_path"):
+def modify_choice(logger, settings, config_path, current_ls, default_pos="export_path"):
     options = []
     for k, v in settings.items():
         options.append(Separator())
@@ -880,8 +880,10 @@ def modify_choice(logger, settings, config_path, default_pos="export_path"):
     exit_no_save = "Exit without saving changes"
     exit_save = "Exit and save"
     test_sql = "Test database settings"
+    change_ls = "Change time to search from"
+    change_ls_opt = f"{change_ls} - Current setting: {current_ls}"
     if exit_no_save not in options:
-        exit_list = [exit_save, exit_no_save, test_sql, Separator()]
+        exit_list = [exit_save, exit_no_save, test_sql, change_ls_opt, Separator()]
         options = exit_list + options
     to_modify = questionary.select(
         "Select an option to modify:", choices=options, default=default_pos
@@ -890,7 +892,11 @@ def modify_choice(logger, settings, config_path, default_pos="export_path"):
         to_modify = to_modify.split("-")[0].strip()
     else:
         sys.exit()
-    if to_modify == exit_save or to_modify == test_sql:
+    if to_modify == exit_save or to_modify == test_sql or to_modify == change_ls:
+        if settings[CONFIG_NAME] is not None:
+            config_name = settings[CONFIG_NAME]
+        else:
+            config_name = "iauditor"
         with open(config_path, "w") as file:
             updated_config = yaml.dump(
                 settings, default_flow_style=False, sort_keys=False
@@ -901,18 +907,42 @@ def modify_choice(logger, settings, config_path, default_pos="export_path"):
         if to_modify == test_sql:
             sql_test_result = test_sql_settings(logger, settings)
             if not sql_test_result:
-                modify_choice(logger, settings, config_path)
-        else:
-            logger.info("All done. Re run the tool to use your new configuration. ")
-            sys.exit()
+                modify_choice(logger, settings, config_path, current_ls)
+        elif to_modify == change_ls:
+            parsed_date = parse_ls(current_ls)
+            if parsed_date:
+                pretty_file_name = parsed_date.strftime("%Y-%m-%d at %H%M")
+                print(
+                    box_print(
+                        f"""
+                We are currently searching for inspections completed after {pretty_file_name}.
+                You can use natural language here. For example if you wanted to start the search from March 22nd 2018, 
+                you could simply type 'March 22nd 2018'
+                """
+                    )
+                )
+                change_ls = ask_question(
+                    logger,
+                    "When should we search from? If you want to start from the beginning, "
+                    "just press enter.",
+                    "text",
+                )
+                new_date = parse_ls(change_ls)
+                if new_date:
+                    new_date = new_date.strftime("%Y-%m-%dT%H:%M:%S%z")
+                    update_sync_marker_file(str(new_date), config_name)
+                modify_choice(logger, settings, config_path, new_date)
+            else:
+                logger.info("All done. Re run the tool to use your new configuration. ")
+                sys.exit()
     elif to_modify == exit_no_save:
         logger.info("Changes discarded.")
         sys.exit()
     elif not to_modify:
-        modify_choice(logger, settings, config_path)
+        modify_choice(logger, settings, config_path, current_ls)
     else:
         update_key(logger, settings, to_modify)
-        modify_choice(logger, settings, config_path)
+        modify_choice(logger, settings, config_path, current_ls)
 
 
 def initial_setup(logger):
@@ -958,36 +988,36 @@ def initial_setup(logger):
         sys.exit()
 
     current_ls = get_last_successful(logger, config_name)
-    parsed_date = parse_ls(current_ls)
-    if parsed_date:
-        pretty_file_name = parsed_date.strftime("%Y-%m-%d at %H%M")
+    # parsed_date = parse_ls(current_ls)
+    # if parsed_date:
+    #     pretty_file_name = parsed_date.strftime("%Y-%m-%d at %H%M")
+    #
+    #     update_ls_q = ask_question(
+    #         logger,
+    #         f"We are currently searching for inspections completed after {pretty_file_name}, would you "
+    #         f"like to change this?",
+    #         "bool",
+    #     )
+    #     if update_ls_q:
+    #         print(
+    #             box_print(
+    #                 """
+    #         You can use natural language here. For example if you wanted to start the search from March 22nd 2018,
+    #         you could simply type 'March 22nd 2018'
+    #         """
+    #             )
+    #         )
+    #         change_ls = ask_question(
+    #             logger,
+    #             "When should we search from? If you want to start from the beginning, "
+    #             "just press enter.",
+    #             "text",
+    #         )
+    #         new_date = parse_ls(change_ls)
+    #         if new_date:
+    #             new_date = new_date.strftime("%Y-%m-%dT%H:%M:%S%z")
+    #             update_sync_marker_file(str(new_date), config_name)
 
-        update_ls_q = ask_question(
-            logger,
-            f"We are currently searching for inspections completed after {pretty_file_name}, would you "
-            f"like to change this?",
-            "bool",
-        )
-        if update_ls_q:
-            print(
-                box_print(
-                    """
-            You can use natural language here. For example if you wanted to start the search from March 22nd 2018, 
-            you could simply type 'March 22nd 2018'
-            """
-                )
-            )
-            change_ls = ask_question(
-                logger,
-                "When should we search from? If you want to start from the beginning, "
-                "just press enter.",
-                "text",
-            )
-            new_date = parse_ls(change_ls)
-            if new_date:
-                new_date = new_date.strftime("%Y-%m-%dT%H:%M:%S%z")
-                update_sync_marker_file(str(new_date), config_name)
-
-    modify_choice(logger, settings, config_path)
+    modify_choice(logger, settings, config_path, current_ls)
 
     sys.exit()

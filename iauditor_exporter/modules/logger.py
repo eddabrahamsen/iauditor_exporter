@@ -3,9 +3,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-
 import coloredlogs
-
 from iauditor_exporter.modules.global_variables import LOG_LEVEL
 
 
@@ -48,8 +46,9 @@ def configure_logging(path_to_log_directory):
     :param path_to_log_directory:  path to directory to write log file in
     :return:
     """
+    coloredlogs.install(level="INFO")
     log_filename = datetime.now().strftime("%Y-%m-%d") + ".log"
-    exporter_logger = logging.getLogger("exporter_logger")
+    exporter_logger = logging.getLogger(__name__)
     exporter_logger.setLevel(LOG_LEVEL)
     formatter = logging.Formatter("%(asctime)s : %(levelname)s : %(message)s")
 
@@ -59,9 +58,11 @@ def configure_logging(path_to_log_directory):
     exporter_logger.addHandler(fh)
 
     sh = logging.StreamHandler(sys.stdout)
-    sh.setLevel(LOG_LEVEL)
+    sh.setLevel(logging.FATAL)
     sh.setFormatter(formatter)
     exporter_logger.addHandler(sh)
+
+    return exporter_logger
 
 
 def configure_logger():
@@ -72,7 +73,8 @@ def configure_logger():
     """
     log_dir = os.path.join(os.getcwd(), "log")
     create_directory_if_not_exists(None, log_dir)
-    configure_logging(log_dir)
-    logger = logging.getLogger("exporter_logger")
-    coloredlogs.install(logger=logger)
+    logger = configure_logging(log_dir)
+
+    # logger = logging.getLogger(__name__)
+
     return logger

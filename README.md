@@ -15,12 +15,11 @@ The easiest way to run this tool is by installing it as a package. The tool `Pip
 * Press enter
 * Run `pip install pipx` (If you get an error, try `pip3 install pipx`)
 * For most users, run: `pipx install iauditor_exporter`. If you want to export to a database, review the database support section below as you will want to run specific commands. 
-* Run ia_exporter --setup
+* Run `ia_exporter --setup`
 * Follow the guidance on screen to configure your config file
-* Run ia_exporter --format csv to start your first export. 
+* Run `ia_exporter --format csv` to start your first export. 
 * When you next need to run this tool, don't forget to `cd` to the same directory you created above.
 * Enjoy!
-
 
 ### Database Support
   The iAuditor Exporter includes support for SQL, PostgreSQL and MySQL databases. 
