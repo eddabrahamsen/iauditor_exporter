@@ -125,7 +125,7 @@ def get_last_successful_actions_export(logger, config_name):
 
     if os.path.isfile(last_successful_file):
         with open(last_successful_file, "r+") as last_run:
-            last_successful_actions_export = last_run.readlines()[0]
+            last_successful_actions_export = last_run.readlines()[0].strip()
             logger.info(
                 "Searching for actions modified after " + last_successful_actions_export
             )

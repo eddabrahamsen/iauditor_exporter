@@ -4,8 +4,6 @@
 import sys
 import time
 
-import numpy as np
-import pandas as pd
 from rich import print
 from tqdm import tqdm
 
@@ -33,14 +31,15 @@ try:
         parse_export_filename,
         parse_command_line_arguments,
         configure,
+        create_directory_if_not_exists,
     )
     from iauditor_exporter.modules.sql import (
         sql_setup,
         end_session,
         query_max_last_modified,
-        export_audit_sql,
         SQL_HEADER_ROW,
         bulk_import_sql,
+        db_formatter,
     )
     from iauditor_exporter.modules.web_report_links import export_audit_web_report_link
 
@@ -54,6 +53,109 @@ except ImportError as e:
         "https://safetyculture.github.io/iauditor-exporter/script-setup/installing-packages/"
     )
     sys.exit()
+
+
+def create_media_sync_log(logger, settings):
+    path = os.path.join("media_sync_log")
+    create_directory_if_not_exists(logger, path)
+    contents_of_directory = os.listdir(path)
+    filename = f"media_sync_ids-{settings[CONFIG_NAME]}.txt"
+    file_name = os.path.join(path, filename)
+
+    return filename, file_name, contents_of_directory
+
+
+def create_file_if_not_exists(logger, file_name):
+    logger.debug(f"Creating {file_name}")
+    open(file_name, "a").close()
+
+
+def inspections_to_process_next_sync(logger, audit, settings):
+    filename, file_name, contents_of_directory = create_media_sync_log(logger, settings)
+    if contents_of_directory:
+        if filename in contents_of_directory:
+            audit_ids_to_extend = open(file_name, "r")
+            print(audit["audit_id"])
+            stripped_list = [line.strip() for line in audit_ids_to_extend.readlines()]
+            print(stripped_list)
+            audit_ids_to_extend.close()
+            if audit["audit_id"] not in stripped_list:
+                append_line_to_text_file(logger, file_name, audit["audit_id"])
+            else:
+                pass
+    else:
+        create_file_if_not_exists(logger, file_name)
+        append_line_to_text_file(logger, file_name, audit["audit_id"])
+
+
+def append_skipped_inspections(logger, list_of_audits, settings):
+    """
+    :param logger: Logging
+    :param list_of_audits: The list of inspections from the API
+    :param settings: Exporter Settings
+
+    :return: API List with any media sync IDs appended
+    """
+    filename, file_name, contents_of_directory = create_media_sync_log(logger, settings)
+    if contents_of_directory:
+        if filename in contents_of_directory:
+            audit_ids_to_extend = open(file_name, "r")
+            list_to_extend = [line.strip() for line in audit_ids_to_extend.readlines()]
+            list_of_audits["audits"] = [
+                obj
+                for obj in list_of_audits["audits"]
+                if obj["audit_id"] not in list_to_extend
+            ]
+            list_of_audits["audits"].extend(
+                {"audit_id": x, "modified_at": None} for x in list_to_extend
+            )
+            logger.info(
+                "Found previously skipped inspections, will attempt to process again this run."
+            )
+    return list_of_audits
+
+
+def is_file_empty(logger, file_name):
+    """ Check if file is empty by reading first character in it"""
+    with open(file_name, "r") as read_obj:
+        one_char = read_obj.read(1)
+        if not one_char:
+            logger.debug("Media sync file is empty")
+            return True
+    logger.debug("Media sync file is populated")
+    return False
+
+
+def remove_id_from_media_sync_file(logger, settings, audit):
+    filename, file_name, contents_of_directory = create_media_sync_log(logger, settings)
+    if contents_of_directory:
+        if filename in contents_of_directory:
+            audit_ids_to_extend = open(file_name, "r")
+            list_to_extend = [line.strip() for line in audit_ids_to_extend.readlines()]
+            changed = False
+            for i, audit_id in enumerate(list_to_extend):
+                if audit["audit_id"] == audit_id:
+                    changed = True
+                    del list_to_extend[i]
+            if changed:
+                new_file = open(file_name, "w+")
+                new_file.writelines(l + "\n" for l in list_to_extend)
+                new_file.close()
+                logger.debug(
+                    f'Removed {audit["audit_id"]} from the media sync log as it was successfully exported.'
+                )
+
+
+def append_line_to_text_file(logger, text_file, line):
+    logger.info(
+        f"Writing {line.strip()} to media sync log so it can be exported later."
+    )
+    new_file = is_file_empty(logger, text_file)
+    with open(text_file, "a") as file_object:
+        if not new_file:
+            file_object.write("\n")
+        file_object.write(str(line).strip())
+        file_object.close()
 
 
 def sync_exports(logger, settings, sc_client):
@@ -136,7 +238,8 @@ def sync_exports(logger, settings, sc_client):
                     show_dupes.append(audit)
             list_of_audits["audits"] = new_audits
 
-        # list_of_audits['audits'] = list({v['audit_id']: v for v in list_of_audits['audits']}.values())
+        list_of_audits = append_skipped_inspections(logger, list_of_audits, settings)
+
         logger.info(str(list_of_audits["total"]) + " audits discovered")
         export_count = 1
         export_total = list_of_audits["total"]
@@ -189,7 +292,6 @@ def loop_through_chunks(
     get_started,
     per_chunk,
 ):
-
     for chunk in chunks_to_process:
         if per_chunk > export_total:
             logger.info(f"Downloading {str(export_total)} total inspections...")
@@ -225,7 +327,7 @@ def loop_through_chunks(
                 export_count += 1
         if "sql" in settings[EXPORT_FORMATS]:
             bulk_import_sql(logger, all_audits, get_started)
-        if debug_code and modified_at:
+        if debug_code is not None and modified_at is not None:
             logger.debug(debug_code)
             update_sync_marker_file(modified_at, settings[CONFIG_NAME])
 
@@ -243,7 +345,11 @@ def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]
     """
 
     if not check_if_media_sync_offset_satisfied(logger, settings, audit):
-        return
+        debug_code = None
+        modified_at = None
+        inspections_to_process_next_sync(logger, audit, settings)
+        return debug_code, modified_at
+
     audit_id = audit["audit_id"]
     audit_json = audit
     template_id = audit_json["template_id"]
@@ -290,70 +396,9 @@ def process_audit(logger, settings, sc_client, audit, get_started, all_audits=[]
     debug_code = "setting last modified to " + audit["modified_at"]
     modified_at = audit["modified_at"]
 
+    remove_id_from_media_sync_file(logger, settings, audit)
+
     return debug_code, modified_at
-
-
-def db_formatter(settings, audit_json, all_audits=[]):
-    """
-    :param settings: Config settings from the config file
-    :param audit_json: the audit in JSON format
-    :param all_audits: a list that we append processed audits too
-    :return: An updated list
-
-    This function takes the audit json and converts it into a table. It then does various conversions to the data
-    to get it ready for insertion into the database. DatePK acts as part of the primary key to detect duplicates.
-    Some databases handle dates differently so there is additional handling here. Similarly with empty integer and
-    string values, as some databases reject None values.
-
-    If you are editing the code to work with a new database type, this is likely where you want to do your edits.
-    SQLAlchemy should manage the actual access, it's just ensuring the data is correctly formatted that matters.
-
-    """
-
-    csv_exporter = csvExporter.CsvExporter(
-        audit_json, settings[EXPORT_INACTIVE_ITEMS_TO_CSV]
-    )
-    df = csv_exporter.audit_table
-    df = pd.DataFrame.from_records(df, columns=SQL_HEADER_ROW)
-    df["DatePK"] = pd.to_datetime(df["DateModified"]).values.astype(np.int64) // 10 ** 6
-    if settings[DB_TYPE].startswith("postgres"):
-        df.replace({"DateCompleted": ""}, np.datetime64(None), inplace=True)
-        df.replace({"ConductedOn": ""}, np.datetime64(None), inplace=True)
-        empty_value = np.nan
-        empty_score = empty_value
-    elif settings[DB_TYPE].startswith("mysql"):
-        df.replace(
-            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
-            0.0,
-            inplace=True,
-        )
-        empty_value = "1970-01-01T00:00:01"
-        df.replace({"DateCompleted": ""}, empty_value, inplace=True)
-        df.replace({"ConductedOn": ""}, empty_value, inplace=True)
-        df["DateStarted"] = pd.to_datetime(df["DateStarted"])
-        df["DateCompleted"] = pd.to_datetime(df["DateCompleted"])
-        df["DateModified"] = pd.to_datetime(df["DateModified"])
-        df["ConductedOn"] = pd.to_datetime(
-            df["ConductedOn"], format="%Y-%m-%d %H:%M:%S", utc=False
-        )
-        df["ConductedOn"] = df["ConductedOn"].dt.tz_localize(None)
-        empty_value = None
-        empty_score = 0.0
-    else:
-        empty_value = None
-        empty_score = empty_value
-
-    df.replace(
-        {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
-        empty_score,
-        inplace=True,
-    )
-    df.replace(r"^\s*$", empty_value, regex=True, inplace=True)
-    df["SortingIndex"] = range(1, len(df) + 1)
-    df_dict = df.to_dict(orient="records")
-    # for row in df_dict:
-    #     all_audits.append(row)
-    all_audits.append(df_dict)
 
 
 def loop(logger, sc_client, settings):

@@ -119,8 +119,8 @@ def sql_setup(logger, settings, action_or_audit):
         else:
             validation = input(
                 "It doesn't look like a table called {} exists on your server. Would you like the "
-                "script to try and create the table for you now?"
-                "(y/n)  ".format(db_setting)
+                "script to try and create the table for you now?  "
+                "(y/n) ".format(db_setting)
             )
             validation = validation.lower()
             if validation.startswith("y"):
@@ -139,78 +139,138 @@ def sql_setup(logger, settings, action_or_audit):
     return setup, session, Database
 
 
-def export_audit_sql(logger, settings, audit_json, get_started):
+def db_formatter(settings, audit_json, all_audits=[]):
     """
-    Save audit to a database.
-    :param logger:      The logger
-    :param settings:    Settings from command line and configuration file
-    :param audit_json:  Audit JSON
-    :get_started:       Tuple containing settings
+    :param settings: Config settings from the config file
+    :param audit_json: the audit in JSON format
+    :param all_audits: a list that we append processed audits too
+    :return: An updated list
+
+    This function takes the audit json and converts it into a table. It then does various conversions to the data
+    to get it ready for insertion into the database. DatePK acts as part of the primary key to detect duplicates.
+    Some databases handle dates differently so there is additional handling here. Similarly with empty integer and
+    string values, as some databases reject None values.
+
+    If you are editing the code to work with a new database type, this is likely where you want to do your edits.
+    SQLAlchemy should manage the actual access, it's just ensuring the data is correctly formatted that matters.
+
     """
-    database = get_started[2]
-    session = get_started[1]
 
     csv_exporter = csvExporter.CsvExporter(
         audit_json, settings[EXPORT_INACTIVE_ITEMS_TO_CSV]
     )
     df = csv_exporter.audit_table
     df = pd.DataFrame.from_records(df, columns=SQL_HEADER_ROW)
+    df["Comment"] = df["Comment"].str.slice(0, 60000)
     df["DatePK"] = pd.to_datetime(df["DateModified"]).values.astype(np.int64) // 10 ** 6
+    empty_score = None
     if settings[DB_TYPE].startswith("postgres"):
-        df.replace({"DateCompleted": ""}, np.datetime64(None), inplace=True)
-        df.replace({"ConductedOn": ""}, np.datetime64(None), inplace=True)
-        empty_value = np.nan
-        empty_score = empty_value
-    elif settings[DB_TYPE].startswith("mysql"):
+        empty_score = np.nan
         df.replace(
-            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
-            0.0,
+            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "", },
+            empty_score,
             inplace=True,
         )
-        empty_value = "1970-01-01T00:00:01"
-        df.replace({"DateCompleted": ""}, empty_value, inplace=True)
-        df.replace({"ConductedOn": ""}, empty_value, inplace=True)
+        df.replace({"DateCompleted": ""}, np.datetime64(None), inplace=True)
+        df.replace({"ConductedOn": ""}, np.datetime64(None), inplace=True)
+    elif settings[DB_TYPE].startswith("mysql"):
         df["DateStarted"] = pd.to_datetime(df["DateStarted"])
         df["DateCompleted"] = pd.to_datetime(df["DateCompleted"])
         df["DateModified"] = pd.to_datetime(df["DateModified"])
-        df["ConductedOn"] = pd.to_datetime(
-            df["ConductedOn"], format="%Y-%m-%d %H:%M:%S", utc=False
-        )
-        df["ConductedOn"] = df["ConductedOn"].dt.tz_localize(None)
-        empty_value = None
+        df["ConductedOn"] = pd.to_datetime(df["ConductedOn"])
         empty_score = 0.0
-    else:
-        empty_value = None
-        empty_score = empty_value
-
-    df.replace(
-        {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
-        empty_score,
-        inplace=True,
-    )
-    df.replace(r"^\s*$", empty_value, regex=True, inplace=True)
+        df.replace(
+            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "", },
+            empty_score,
+            inplace=True,
+        )
+        df.replace(
+            {"ConductedOn": pd.NaT, "DateCompleted": pd.NaT},
+            "1970-01-01T00:00:01",
+            inplace=True,
+        )
+    df.replace(r"^\s*$", None, regex=True, inplace=True)
     df["SortingIndex"] = range(1, len(df) + 1)
+    df.replace(np.nan, None, inplace=True)
+    df.replace({"DateCompleted": ""}, None, inplace=True)
+    df.replace({"ConductedOn": ""}, None, inplace=True)
+
     df_dict = df.to_dict(orient="records")
-    try:
-        session.bulk_insert_mappings(database, df_dict)
-    except KeyboardInterrupt:
-        logger.warning("Interrupted by user, exiting.")
-        session.rollback()
-        session.close()
-        sys.exit(0)
-    except OperationalError as ex:
-        session.rollback()
-        session.close()
-        logger.warning("Something went wrong. Here are the details: {}".format(ex))
-    except IntegrityError as ex:
-        # If the bulk insert fails (likely due to a duplicate), we do a slower merge
-        logger.warning("Duplicate found, attempting to update")
-        session.rollback()
-        for row in df_dict:
-            row_to_dict = database(**row)
-            session.merge(row_to_dict)
-        logger.debug("Row successfully updated.")
-    session.commit()
+    all_audits.append(df_dict)
+
+
+# def export_audit_sql(logger, settings, audit_json, get_started):
+#     """
+#     Save audit to a database.
+#     :param logger:      The logger
+#     :param settings:    Settings from command line and configuration file
+#     :param audit_json:  Audit JSON
+#     :get_started:       Tuple containing settings
+#     """
+#     database = get_started[2]
+#     session = get_started[1]
+#
+#     csv_exporter = csvExporter.CsvExporter(
+#         audit_json, settings[EXPORT_INACTIVE_ITEMS_TO_CSV]
+#     )
+#     df = csv_exporter.audit_table
+#     df = pd.DataFrame.from_records(df, columns=SQL_HEADER_ROW)
+#     df["DatePK"] = pd.to_datetime(df["DateModified"]).values.astype(np.int64) // 10 ** 6
+#     if settings[DB_TYPE].startswith("postgres"):
+#         df.replace({"DateCompleted": ""}, np.datetime64(None), inplace=True)
+#         df.replace({"ConductedOn": ""}, np.datetime64(None), inplace=True)
+#         empty_value = np.nan
+#         empty_score = empty_value
+#     elif settings[DB_TYPE].startswith("mysql"):
+#         df.replace(
+#             {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
+#             0.0,
+#             inplace=True,
+#         )
+#         empty_value = "1970-01-01T00:00:01"
+#         df.replace({"DateCompleted": ""}, empty_value, inplace=True)
+#         df.replace({"ConductedOn": ""}, empty_value, inplace=True)
+#         df["DateStarted"] = pd.to_datetime(df["DateStarted"])
+#         df["DateCompleted"] = pd.to_datetime(df["DateCompleted"])
+#         df["DateModified"] = pd.to_datetime(df["DateModified"])
+#         df["ConductedOn"] = pd.to_datetime(
+#             df["ConductedOn"], format="%Y-%m-%d %H:%M:%S", utc=False
+#         )
+#         df["ConductedOn"] = df["ConductedOn"].dt.tz_localize(None)
+#         empty_value = None
+#         empty_score = 0.0
+#     else:
+#         empty_value = None
+#         empty_score = empty_value
+#
+#     df.replace(
+#         {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": ""},
+#         empty_score,
+#         inplace=True,
+#     )
+#     df.replace(r"^\s*$", empty_value, regex=True, inplace=True)
+#     df["SortingIndex"] = range(1, len(df) + 1)
+#     df_dict = df.to_dict(orient="records")
+#     try:
+#         session.bulk_insert_mappings(database, df_dict)
+#     except KeyboardInterrupt:
+#         logger.warning("Interrupted by user, exiting.")
+#         session.rollback()
+#         session.close()
+#         sys.exit(0)
+#     except OperationalError as ex:
+#         session.rollback()
+#         session.close()
+#         logger.warning("Something went wrong. Here are the details: {}".format(ex))
+#     except IntegrityError as ex:
+#         # If the bulk insert fails (likely due to a duplicate), we do a slower merge
+#         logger.warning("Duplicate found, attempting to update")
+#         session.rollback()
+#         for row in df_dict:
+#             row_to_dict = database(**row)
+#             session.merge(row_to_dict)
+#         logger.debug("Row successfully updated.")
+#     session.commit()
 
 
 def bulk_import_sql(logger, df_dict, get_started):
@@ -237,25 +297,14 @@ def bulk_import_sql(logger, df_dict, get_started):
             session.rollback()
             session.close()
             sys.exit(0)
-        # except IntegrityError as ex:
-        #     # If the bulk insert fails (likely due to a duplicate), we do a slower merge
-        #     logger.warning("Duplicate found, attempting to update")
-        #     session.rollback()
-        #     count = 0
-        # for row in df_dict:
-        #     existing_row = session.query(database).filter_by(AuditID=row['AuditID'], ItemID=row['ItemID']).first()
-        #     print(existing_row)
-        #     row_to_dict = database(**row)
-        #     count += 1
-        #     if existing_row:
-        #         print(f'Merging {count}')
-        #         session.merge(row_to_dict)
-        #     else:
-        #         session.add(row_to_dict)
-        except IntegrityError:
-            logger.info("Duplicate inspection found, updating instead.")
+        except IntegrityError as ex:
+            # If the bulk insert fails, we do a slower merge
+            logger.info('Duplicate found, attempting to update')
             session.rollback()
-            session.bulk_update_mappings(database, audit)
+            for row in audit:
+                row_to_dict = database(**row)
+                session.merge(row_to_dict)
+            logger.debug('Row successfully updated.')
         except Exception as ex:
             session.rollback()
             session.close()
@@ -301,7 +350,7 @@ def save_exported_actions_to_db(logger, actions_array, settings, get_started):
         bulk_actions.append(action_as_list)
     df = pd.DataFrame.from_records(bulk_actions, columns=ACTIONS_HEADER_ROW)
     df["DatePK"] = (
-        pd.to_datetime(df["modifiedDatetime"]).values.astype(np.int64) // 10 ** 6
+            pd.to_datetime(df["modifiedDatetime"]).values.astype(np.int64) // 10 ** 6
     )
     if settings[DB_TYPE].startswith(("mysql", "postgres")):
         df.replace({"DateCompleted": ""}, None, inplace=True)

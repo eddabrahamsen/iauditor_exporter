@@ -6,7 +6,8 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     BigInteger,
-    Unicode,
+    Numeric,
+    UnicodeText,
     schema,
 )
 
@@ -18,10 +19,10 @@ def set_table(table, merge, Base, user_schema=None):
             __table_args__ = {"schema": user_schema}
         SortingIndex = Column(Integer)
         ItemType = Column(String(20))
-        Label = Column(Unicode())
-        Response = Column(Unicode())
-        Comment = Column(Unicode())
-        MediaHypertextReference = Column(Unicode())
+        Label = Column(UnicodeText())
+        Response = Column(UnicodeText())
+        Comment = Column(UnicodeText())
+        MediaHypertextReference = Column(UnicodeText())
         Latitude = Column(String(50))
         Longitude = Column(String(50))
         ItemScore = Column(Float)
@@ -36,13 +37,13 @@ def set_table(table, merge, Base, user_schema=None):
             DatePK = Column(BigInteger, primary_key=True, autoincrement=False)
         else:
             DatePK = Column(BigInteger)
-        ResponseID = Column(Unicode())
+        ResponseID = Column(UnicodeText())
         ParentID = Column(String(100))
-        AuditOwner = Column(Unicode())
-        AuditAuthor = Column(Unicode())
-        AuditOwnerID = Column(Unicode())
+        AuditOwner = Column(UnicodeText())
+        AuditAuthor = Column(UnicodeText())
+        AuditOwnerID = Column(UnicodeText())
         AuditAuthorID = Column(String(100))
-        AuditName = Column(Unicode())
+        AuditName = Column(UnicodeText())
         AuditScore = Column(Float)
         AuditMaxScore = Column(Float)
         AuditScorePercentage = Column(Float)
@@ -51,20 +52,20 @@ def set_table(table, merge, Base, user_schema=None):
         DateCompleted = Column(DateTime)
         DateModified = Column(DateTime)
         TemplateID = Column(String(100))
-        TemplateName = Column(Unicode())
-        TemplateAuthor = Column(Unicode())
+        TemplateName = Column(UnicodeText())
+        TemplateAuthor = Column(UnicodeText())
         TemplateAuthorID = Column(String(100))
-        ItemCategory = Column(Unicode())
+        ItemCategory = Column(UnicodeText())
         RepeatingSectionParentID = Column(String(100))
-        DocumentNo = Column(Unicode())
+        DocumentNo = Column(UnicodeText())
         ConductedOn = Column(DateTime)
-        PreparedBy = Column(Unicode())
-        Location = Column(Unicode())
-        Personnel = Column(Unicode())
-        ClientSite = Column(Unicode())
-        AuditSite = Column(Unicode())
-        AuditArea = Column(Unicode())
-        AuditRegion = Column(Unicode())
+        PreparedBy = Column(UnicodeText())
+        Location = Column(UnicodeText())
+        Personnel = Column(UnicodeText())
+        ClientSite = Column(UnicodeText())
+        AuditSite = Column(UnicodeText())
+        AuditArea = Column(UnicodeText())
+        AuditRegion = Column(UnicodeText())
         Archived = Column(Boolean)
         if user_schema:
             schema = user_schema
@@ -128,10 +129,11 @@ def set_actions_table(table, merge, Base, user_schema=None):
         if user_schema:
             __table_args__ = {"schema": user_schema}
         id = Column(Integer, primary_key=False, autoincrement=True)
-        title = Column(Unicode())
-        description = Column(Unicode())
-        assignee = Column(Unicode())
-        priority = Column(Unicode())
+        title = Column(UnicodeText())
+        description = Column(UnicodeText())
+        site = Column(UnicodeText())
+        assignee = Column(UnicodeText())
+        priority = Column(UnicodeText())
         priorityCode = Column(Integer)
         status = Column(String(20))
         statusCode = Column(Integer)
@@ -141,11 +143,11 @@ def set_actions_table(table, merge, Base, user_schema=None):
             DatePK = Column(BigInteger, autoincrement=False)
         else:
             DatePK = Column(BigInteger, primary_key=True, autoincrement=False)
-        audit = Column(Unicode())
+        audit = Column(UnicodeText())
         auditId = Column(String(50))
-        linkedToItem = Column(Unicode())
-        linkedToItemId = Column(Unicode())
-        creatorName = Column(Unicode())
+        linkedToItem = Column(UnicodeText())
+        linkedToItemId = Column(UnicodeText())
+        creatorName = Column(UnicodeText())
         creatorId = Column(String(50))
         createdDatetime = Column(DateTime)
         modifiedDatetime = Column(DateTime)
@@ -160,6 +162,7 @@ ACTIONS_HEADER_ROW = [
     "actionId",
     "title",
     "description",
+    "site",
     "assignee",
     "priority",
     "priorityCode",
