@@ -167,7 +167,7 @@ def db_formatter(settings, audit_json, all_audits=[]):
     if settings[DB_TYPE].startswith("postgres"):
         empty_score = np.nan
         df.replace(
-            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "", },
+            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "",},
             empty_score,
             inplace=True,
         )
@@ -180,7 +180,7 @@ def db_formatter(settings, audit_json, all_audits=[]):
         df["ConductedOn"] = pd.to_datetime(df["ConductedOn"])
         empty_score = 0.0
         df.replace(
-            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "", },
+            {"ItemScore": "", "ItemMaxScore": "", "ItemScorePercentage": "",},
             empty_score,
             inplace=True,
         )
@@ -299,12 +299,12 @@ def bulk_import_sql(logger, df_dict, get_started):
             sys.exit(0)
         except IntegrityError as ex:
             # If the bulk insert fails, we do a slower merge
-            logger.info('Duplicate found, attempting to update')
+            logger.info("Duplicate found, attempting to update")
             session.rollback()
             for row in audit:
                 row_to_dict = database(**row)
                 session.merge(row_to_dict)
-            logger.debug('Row successfully updated.')
+            logger.debug("Row successfully updated.")
         except Exception as ex:
             session.rollback()
             session.close()
@@ -350,7 +350,7 @@ def save_exported_actions_to_db(logger, actions_array, settings, get_started):
         bulk_actions.append(action_as_list)
     df = pd.DataFrame.from_records(bulk_actions, columns=ACTIONS_HEADER_ROW)
     df["DatePK"] = (
-            pd.to_datetime(df["modifiedDatetime"]).values.astype(np.int64) // 10 ** 6
+        pd.to_datetime(df["modifiedDatetime"]).values.astype(np.int64) // 10 ** 6
     )
     if settings[DB_TYPE].startswith(("mysql", "postgres")):
         df.replace({"DateCompleted": ""}, None, inplace=True)

@@ -9,7 +9,7 @@ def transform_action_object_to_list(action):
         get_json_property(action, "action_id"),
         get_json_property(action, "title"),
         get_json_property(action, "description"),
-        get_json_property(action, "site")
+        get_json_property(action, "site"),
     ]
     assignee_list = []
     for assignee in get_json_property(action, "assignees"):

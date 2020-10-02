@@ -478,7 +478,9 @@ def load_config_settings(logger, path_to_config_file, docker_enabled=False):
             MEDIA_SYNC_OFFSET_IN_SECONDS: load_setting_media_sync_offset(
                 logger, config_settings
             ),
-            TEMPLATE_IDS: config_settings["export_options"]["template_ids"],
+            TEMPLATE_IDS: config_settings["export_options"]["template_ids"]
+            if config_settings["export_options"]["template_ids"] != ""
+            else None,
             SQL_TABLE: config_settings["export_options"]["sql_table"],
             DB_TYPE: config_settings["export_options"]["database_type"],
             DB_USER: config_settings["export_options"]["database_user"],

@@ -8,8 +8,8 @@ The iAuditor Exporter tool is the primary way to bulk export iAuditor informatio
 ## Installation
 The easiest way to run this tool is by installing it as a package. The tool `Pipx` makes this incredibly easy:
 
-* Install Python 3.5+ on the machine you wish to run the tool on
-* Create a folder on your machine where you want to store the script. Make sure it's a location you have full access to, your documents folder is usually a good choice. 
+* Install Python 3.6+ on the machine you wish to run the tool on
+* Create a folder on your machine where you want to store the script. Make sure it's in a location you have full access to, your documents folder is usually a good choice. 
 * Open your terminal (If on a Mac, open Terminal. On Windows, use PowerShell where possible.)
 * Type `cd` and press the space bar once. Drag the folder you just created into the terminal window and the path will appear next to your `cd` command
 * Press enter
@@ -29,10 +29,10 @@ The easiest way to run this tool is by installing it as a package. The tool `Pip
 ##### Windows
 * None I'm aware of at this time.
 
-##### macOS (all available via Brew)
-* `unixodbc-dev`
-* For MySQL: `mysql_config`
-* For PostgreSQL: `libpq`
+##### macOS (all available via Brew - even though the MySQL and Postgres packages technically install the entire database system, it does not mean that the full database server will be running on your machine.)
+* `unixodbc`
+* For MySQL: `mysql`
+* For PostgreSQL: `postgres`
 
 ##### Linux (You may need to adapt these, these dependencies assume Debian/Ubuntu)
 * `unixodbc-dev`

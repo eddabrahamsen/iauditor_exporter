@@ -75,9 +75,7 @@ def inspections_to_process_next_sync(logger, audit, settings):
     if contents_of_directory:
         if filename in contents_of_directory:
             audit_ids_to_extend = open(file_name, "r")
-            print(audit["audit_id"])
             stripped_list = [line.strip() for line in audit_ids_to_extend.readlines()]
-            print(stripped_list)
             audit_ids_to_extend.close()
             if audit["audit_id"] not in stripped_list:
                 append_line_to_text_file(logger, file_name, audit["audit_id"])
@@ -240,9 +238,11 @@ def sync_exports(logger, settings, sc_client):
 
         list_of_audits = append_skipped_inspections(logger, list_of_audits, settings)
 
-        logger.info(str(list_of_audits["total"]) + " audits discovered")
+        logger.info(str(len(list_of_audits["audits"])) + " audits discovered")
+        # logger.info(str(list_of_audits["total"]) + " audits discovered")
         export_count = 1
-        export_total = list_of_audits["total"]
+        export_total = len(list_of_audits["audits"])
+        # export_total = list_of_audits["total"]
         get_started = "ignored"
         audits_to_process = list_of_audits["audits"]
 
