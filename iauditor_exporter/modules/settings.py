@@ -868,7 +868,7 @@ def update_key(logger, settings, key):
         print(f"{key} is not a recognised setting. If unsure, start a new config file.")
 
 
-def modify_choice(logger, settings, config_path, current_ls, default_pos="export_path"):
+def modify_choice(logger, settings, config_path, current_ls):
     options = []
     for k, v in settings.items():
         options.append(Separator())
@@ -888,7 +888,7 @@ def modify_choice(logger, settings, config_path, current_ls, default_pos="export
         exit_list = [exit_save, exit_no_save, test_sql, change_ls_opt, Separator()]
         options = exit_list + options
     to_modify = questionary.select(
-        "Select an option to modify:", choices=options, default=default_pos
+        "Select an option to modify:", choices=options
     ).ask()
     if to_modify:
         to_modify = to_modify.split("-")[0].strip()
